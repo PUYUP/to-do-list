@@ -23,7 +23,7 @@ The installation for each folder. This application is tested in Linux environmen
 1. run it `npm run dev`
 
 ### How to use
-- To access the application use `localhost:3000` for main application and `localhost:8000/admin` to access django admin page. For now the data is still empty, you can create new data in the front end or by accessing django admin.
+- To access the application use `localhost:4000` for main application and `localhost:7000/admin` to access django admin page. For now the data is still empty, you can create new data in the front end or by accessing django admin.
 
 - To create a superuser for django admin use `python manage.py createsuperuser` and follow the instruction.
 

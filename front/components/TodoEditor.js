@@ -23,7 +23,7 @@ const ADD_TODO = gql`
 `
 
 const UPDATE_TODO = gql`
-	mutation updateTodoMutation($id: String!, $title: String!, $description: String) {
+	mutation updateTodoMutation($id: Int!, $title: String!, $description: String) {
 		updateTodo(where: {id: $id}, input: {title: $title, description: $description}){
 			todo {
 				id,

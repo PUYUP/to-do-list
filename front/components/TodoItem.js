@@ -9,7 +9,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import { gql, useMutation } from '@apollo/client'
 
 const MARKED_CHECKED = gql`
-	mutation markedCheckedTodoMutation($id: String!, $checked: Boolean!) {
+	mutation markedCheckedTodoMutation($id: Int!, $checked: Boolean!) {
 		updateTodo(where: {id: $id}, input: {checked: $checked}){
 			todo {
 				title,
@@ -22,7 +22,7 @@ const MARKED_CHECKED = gql`
 `
 
 const DELETE_ITEM = gql`
-	mutation deleteTodoMutation($id: String!) {
+	mutation deleteTodoMutation($id: Int!) {
 		deleteTodo(where: {id: $id}){
 			todo {
 				title,

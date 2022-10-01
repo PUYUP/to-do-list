@@ -1,6 +1,7 @@
 import graphene
 import copy
 
+from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
 from django.utils.encoding import smart_str
 from django.core.exceptions import ObjectDoesNotExist
@@ -9,6 +10,8 @@ from graphene_django import DjangoObjectType
 
 from .models import ToDo
 
+ALL_TODO_CACHED_KEY = 'allTodo'
+RETRIEVE_TODO_CACHED_KEY = 'retrieveTodo'
 
 class ToDoType(DjangoObjectType):
     class Meta:
@@ -21,11 +24,22 @@ class ToDoQuery(graphene.ObjectType):
     getTodoById = graphene.Field(ToDoType, id=graphene.Int())
 
     def resolve_allTodo(root, info):
-        return ToDo.objects.all().order_by('-created')
+        instances = cache.get(ALL_TODO_CACHED_KEY)
+
+        if instances is None:
+            instances = ToDo.objects.all().order_by('-created')
+            cache.set(ALL_TODO_CACHED_KEY, instances, 30)
+
+        return instances
 
     def resolve_getTodoById(root, info, id):
         try:
-            return ToDo.objects.get(id=id)
+            instance = cache.get(RETRIEVE_TODO_CACHED_KEY)
+            if instance is None:
+                instance = ToDo.objects.get(id=id)
+                cache.set(RETRIEVE_TODO_CACHED_KEY, instance, 30)
+
+            return instance
         except ObjectDoesNotExist:
             return None
 
