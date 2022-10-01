@@ -37,12 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "graphene_django",
+    'corsheaders',
+    'graphene_django',
     'todo'
 ]
 
 MIDDLEWARE = [
-    
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
@@ -56,7 +57,7 @@ MIDDLEWARE = [
 # CORS
 
 CORS_ALLOWED_ORIGINS=[
-    "http://localhost:3000"
+    "http://localhost:4000"
 ]
 
 ROOT_URLCONF = 'todolist.urls'
@@ -133,5 +134,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 GRAPHENE = {
-    "SCHEMA": "graph.schema.schema"
+    "SCHEMA": "graph.schema.schema",
+    "ATOMIC_MUTATIONS": True,
 }

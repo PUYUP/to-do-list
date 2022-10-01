@@ -20,5 +20,7 @@ from graphene_django.views import GraphQLView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # note 1: set `graphiql` False to prevent observable GraphiQL API browser
+    # set True only for development mode
     path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ]

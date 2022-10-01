@@ -3,3 +3,6 @@
 
 # database
 *.sqlite3
+
+# personal
+note.md

@@ -1,87 +1,77 @@
+import * as React from 'react'
 import Head from 'next/head'
 import Container from '@mui/material/Container'
-import { Box, Button, Checkbox, Grid, IconButton, List, ListItem, ListItemAvatar, ListItemText, TextField, Typography } from '@mui/material'
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import { useEffect, useState } from 'react';
-import client from '../libs/apollo-client';
-import { gql } from '@apollo/client';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid'
+import List from '@mui/material/List'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import { gql, useQuery } from '@apollo/client';
+
+import TodoItem from '../components/TodoItem';
+import TodoEditor from '../components/TodoEditor';
+
+const ALL_TODO = gql`
+  query {
+    allTodo{
+      id
+      title
+      description
+      checked
+    }
+  }
+`
 
 export default function Home() {
-  const [data, setData] = useState([])
-  const [title, setTitle] = useState()
-  const [desc, setDesc] = useState()
-  const [count, setCount] = useState(0)
+  const [openEditor, setOpenEditor] = React.useState(false);
+  const [data, setData] = React.useState([])
+  const [todoItem, setTodoItem] = React.useState({})
+  const { data: todoData, loading, error } = useQuery(ALL_TODO)
 
-  useEffect(() => {
-    setData([
-      {
-        id: 1,
-        title: 'Test',
-        description: 'this is description'
-      },
-      {
-        id: 2,
-        title: 'Test',
-        description: 'this is description'
-      },
-    ])
-    setCount(2)
-    client.query({
-      query: gql`
-        query {
-          allTodo{
-            id
-            title
-            description
-            checked
-          }
-        }
-      `
-    }).then(result => {
-      console.log(result.data.allTodo)
-      setData(result.data.allTodo)
-      setCount(0)
-    })
-    return () => { }
-  }, [])
+  React.useEffect(() => {
+    if (!loading && !error) {
+      setData(todoData.allTodo)
+    }
+  }, [todoData])
 
-
-
-  function handleAddToDo(e) {
-    e.preventDefault()
-    let temp = [...data]
-    let tempCount = ++count
-
-    setData([...data, { id: count, title: title, description: desc }])
-    setCount(tempCount)
-    client.mutate({
-      mutation: gql`
-        mutation addTodoMutation($title:String!, $description: String! ){
-          addTodo(title:$title, description:$description){
-            code
-            msg
-          }
-        }
-      `,
-      variables:{
-        title:title,
-        description:desc
-      }
-    }).then(result=>{
-      console.log(result)
-    })
+  function handleTodoAdded(todo) {
+    setData([{ ...todo }, ...data])
   }
 
-  function deleteItem(id) {
+  function handleDeleteItem(id) {
     var filtered = data.filter(function (value, index, arr) {
       return value.id != id;
     });
     setData(filtered)
   }
 
-  console.log(data)
+  function handleEditItem(item) {
+    setTodoItem(item)
+    setOpenEditor(true)
+  }
+
+  function handleCancelEdit() {
+    setOpenEditor(false)
+  }
+
+  function handleUpdated(item) {
+    setOpenEditor(false)
+
+    var filtered = data.map(function (value, index, arr) {
+      if (value.id == item.id) {
+        return item
+      }
+    });
+    setData(filtered)
+  }
+
   return (
-    <div>
+    <>
       <Head>
         <title>To Do List App</title>
         <meta name="description" content="Simple to do list" />
@@ -94,45 +84,43 @@ export default function Home() {
           <Grid container spacing={2}>
             <Grid item>
               <Box>
-                <TextField
-                  id="todolist-id"
-                  label="To Do"
-                  onChange={(e) => { setTitle(e.target.value) }}
-                />
-                <TextField
-                  id="todolist-id"
-                  label="Description"
-                  onChange={(e) => { setDesc(e.target.value) }}
-                  sx={{ mx: 2 }}
-                />
-                <Button sx={{ m: 2 }} onClick={handleAddToDo}>
-                  + Add
-                </Button>
+                <Card>
+                  <CardContent>
+                    <TodoEditor onAdded={handleTodoAdded} />
+                  </CardContent>
+                </Card>
               </Box>
 
-              <List dense>
-                {data.map((val, idx) => {
-                  return (<ListItem
-                    key={idx}
-                    secondaryAction={
-                      <IconButton edge="end" aria-label="delete" onClick={() => deleteItem(val.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    }
-                  >
-                    <Checkbox />
-                    <ListItemText
-                      primary={val.title}
-                      secondary={val.description}
-                    />
-                  </ListItem>)
-                })
-                }
-              </List>
+              {loading &&
+                <Box sx={{ display: 'flex', justifyContent: 'center', padding: 4 }}>
+                  <CircularProgress />
+                </Box>
+              }
+
+              {(!loading && data) ? (
+                <List dense>
+                  {data.map((val, idx) => {
+                    return (
+                      <TodoItem key={idx} todo={val} onDeleted={handleDeleteItem} onEdit={handleEditItem} />
+                    )
+                  })}
+                </List>
+              ) : (
+                <Typography variant='p'>Currently empty</Typography>
+              )}
             </Grid>
           </Grid>
         </Container>
       </main>
-    </div>
+
+      <Dialog open={openEditor} onClose={handleCancelEdit} fullWidth maxWidth="xs">
+        <DialogTitle>Change Todo Detail</DialogTitle>
+        <DialogContent>
+          <Box paddingTop={1}>
+            <TodoEditor todo={todoItem} onUpdated={handleUpdated} />
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
